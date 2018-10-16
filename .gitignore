@@ -1,0 +1,10 @@
+/.vs
+/packages
+/RefCounterAnalyzer/obj
+/RefCounterAnalyzer/bin
+/RefCounterAnalyzer.Test/bin
+/RefCounterAnalyzer.Test/obj
+/ObjectPool/obj
+/ObjectPool/bin
+/ObjectPoolTests/bin
+/ObjectPoolTests/obj
