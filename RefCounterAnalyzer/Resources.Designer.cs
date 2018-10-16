@@ -71,7 +71,7 @@ namespace RefCounterAnalyzer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Don&apos;t ignore return value of type IRefCounter..
+        ///   Looks up a localized string similar to possible reference counter error.
         /// </summary>
         internal static string RefCounter001AnalyzerTitle {
             get {
@@ -107,7 +107,7 @@ namespace RefCounterAnalyzer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Reference Counter of {0} is {1}, detail {2}.
+        ///   Looks up a localized string similar to Reference Counter of {0} is {1}: {2}.
         /// </summary>
         internal static string RefCounterErrorAnalyzerMessageFormat {
             get {
@@ -152,7 +152,7 @@ namespace RefCounterAnalyzer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to more than one AddRef.
+        ///   Looks up a localized string similar to more than one AcquireReference call.
         /// </summary>
         internal static string SkipReasonMoreThanOneAddRef {
             get {
@@ -161,7 +161,7 @@ namespace RefCounterAnalyzer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to more than one DelRef.
+        ///   Looks up a localized string similar to more than one ReleaseReference call.
         /// </summary>
         internal static string SkipReasonMoreThanOneDelRef {
             get {

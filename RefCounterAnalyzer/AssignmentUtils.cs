@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.ServiceModel.Channels;
 using System.Threading;
 using IDisposableAnalyzers;
 using Microsoft.CodeAnalysis;
@@ -12,7 +13,8 @@ public class AssignmentUtils
 {
 	public static void ProcessVariableInitialization(
 		VariableDeclaratorSyntax variable,
-		SemanticModel semanticModel,
+		BlockSyntax block, 
+        SemanticModel semanticModel,
 		CancellationToken cancellationToken,
 		RefCounterStatus refCounterStatus)
 	{
@@ -23,25 +25,35 @@ public class AssignmentUtils
 		}
 		else
 		{
-			CalcAssignmentValue(variable.Initializer.Value, semanticModel, cancellationToken, refCounterStatus);
+			CalcAssignmentValue(variable.Initializer.Value, block, semanticModel, cancellationToken, refCounterStatus);
 		}
 	}
 
-	public static void CalcAssignmentValue(ExpressionSyntax variable, SemanticModel semanticModel, CancellationToken cancellationToken,
+	public static void CalcAssignmentValue(ExpressionSyntax variable, BlockSyntax block, SemanticModel semanticModel, CancellationToken cancellationToken,
 		RefCounterStatus refCounterStatus)
 	{
 		
 		if (InitializeFromCreation(variable))
 		{
 			refCounterStatus.IncAssignCounter("initialize from new", variable.GetLocation());
-			refCounterStatus.IncRef("init from new", variable.GetLocation());
+			refCounterStatus.AcquireReference("init from new", variable.GetLocation());
 		}
-		else if (InitializeFromNonGetMethod(variable, semanticModel))
+        else if (InitializeFromTypeCastParameter(variable, semanticModel, cancellationToken, out var param))
+		{
+		    refCounterStatus.IncAssignCounter("init cast from param", variable.GetLocation());
+		    refCounterStatus.RemainRef("init cast from param", variable.GetLocation());
+            if (RightOfAssignmentUtils.RightSideOfAssignmentCount(param, block, semanticModel, cancellationToken) > 1)
+		    {
+		        refCounterStatus.Skip("cast from param also assigned to others", variable.GetLocation());
+            }
+		    
+        }
+		else if (InitializeFromNonGetMethod(variable, semanticModel, cancellationToken))
 		{
 			refCounterStatus.IncAssignCounter("initialize from non-get method", variable.GetLocation());
-			refCounterStatus.IncRef("init from non-get method", variable.GetLocation());
+			refCounterStatus.AcquireReference("init from non-get method", variable.GetLocation());
 		}
-		else if (InitializeFromGetMethod(variable, semanticModel))
+		else if (InitializeFromGetMethod(variable, semanticModel, cancellationToken))
 		{
 		    refCounterStatus.IncAssignCounter("initialize from get method", variable.GetLocation());
 		    refCounterStatus.RemainRef("init from get method", variable.GetLocation());
@@ -90,40 +102,40 @@ public class AssignmentUtils
 		return false;
 	}
 
-	private static bool InitializeFromGetMethod(ExpressionSyntax variable, SemanticModel semanticModel)
+	private static bool InitializeFromGetMethod(ExpressionSyntax variable, SemanticModel semanticModel, CancellationToken cancellationToken)
 	{
 		if (variable is CastExpressionSyntax cast)
 		{
-			return InitializeFromGetMethod(cast.Expression, semanticModel);
+			return InitializeFromGetMethod(cast.Expression, semanticModel, cancellationToken);
 
 		}
 	    if (variable is InvocationExpressionSyntax invok)
 	    {
-	        return IsGetMethod(invok, semanticModel);
+	        return IsGetMethod(invok, semanticModel, cancellationToken);
 
 	    }
 	    return false;
 	}
 
-    public static bool IsGetMethod(InvocationExpressionSyntax invok, SemanticModel semanticModel)
+    public static bool IsGetMethod(InvocationExpressionSyntax invok, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
-        var sym = semanticModel.GetSymbolInfo(invok.Expression);
+        var sym = semanticModel.GetSymbolInfo(invok.Expression, cancellationToken);
         if (sym.Symbol is IMethodSymbol method)
         {
-            return method.Name.StartsWith(KnownSymbol.GetMethodProfix);
+            return KnownSymbol.IsGetMethodName(method.Name);
         }
         return false;
     }
-    private static bool InitializeFromNonGetMethod(ExpressionSyntax variable, SemanticModel semanticModel)
+    private static bool InitializeFromNonGetMethod(ExpressionSyntax variable, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
         if (variable is CastExpressionSyntax cast)
         {
-            return InitializeFromNonGetMethod(cast.Expression, semanticModel);
+            return InitializeFromNonGetMethod(cast.Expression, semanticModel, cancellationToken);
 
         }
         if (variable is InvocationExpressionSyntax invok)
         {
-            return !IsGetMethod(invok, semanticModel);
+            return !IsGetMethod(invok, semanticModel, cancellationToken);
 
         }
         return false;
@@ -134,7 +146,25 @@ public class AssignmentUtils
 		return variable is ObjectCreationExpressionSyntax;
 	}
 
-	private static bool IsFieldOrProperty(SemanticModel semanticModel, CancellationToken cancellationToken, SyntaxNode node)
+    private static bool InitializeFromTypeCastParameter(ExpressionSyntax variable, SemanticModel semanticModel, CancellationToken cancellationToken, out IParameterSymbol paramSymbol)
+    {
+        paramSymbol = null;
+        if (variable is CastExpressionSyntax cast)
+        {
+            if (cast.Expression is IdentifierNameSyntax id)
+            {
+                var symbol = semanticModel.GetSymbolInfo(id, cancellationToken);
+                if (symbol.Symbol is IParameterSymbol local)
+                {
+                    paramSymbol = local;
+                    return !RefCounter.IsAssignableTo(local.Type);
+                }
+            }
+        }
+        return false;
+    }
+
+    private static bool IsFieldOrProperty(SemanticModel semanticModel, CancellationToken cancellationToken, SyntaxNode node)
 	{
 		var left = semanticModel.GetSymbolSafe(node, cancellationToken) ??
 		           semanticModel.GetSymbolSafe((node as ElementAccessExpressionSyntax)?.Expression,

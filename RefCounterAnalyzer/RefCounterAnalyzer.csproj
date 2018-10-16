@@ -37,6 +37,7 @@
     <Compile Include="AnalyzerCategory.cs" />
     <Compile Include="AnalyzerConstants.cs" />
     <Compile Include="AssignmentUtils.cs" />
+    <Compile Include="CastUtils.cs" />
     <Compile Include="Helpers\AsyncAwait.cs" />
     <Compile Include="Helpers\Attribute.cs" />
     <Compile Include="Helpers\Break.cs" />
@@ -129,7 +130,7 @@
     <Compile Include="HelpLink.cs" />
     <Compile Include="LeftOfAssignmentUtils.cs" />
     <Compile Include="LoopUtils.cs" />
-    <Compile Include="IncDelRefMethodUtils.cs" />
+    <Compile Include="ChangeReferenceMethodUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RefCounter001Analyzer.cs" />
     <Compile Include="RefCounterStatus.cs" />

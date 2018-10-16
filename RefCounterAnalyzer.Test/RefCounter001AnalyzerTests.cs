@@ -22,8 +22,49 @@ namespace RefCounterAnalyzer.Test
 			VerifyCSharpDiagnostic(test);
 		}
 
-		//Diagnostic and CodeFix both triggered and checked for
-		[TestMethod]
+	    //No diagnostics expected to show up
+	    [TestMethod]
+	    public void TestEmpty2()
+	    {
+	        var test = @"
+    namespace Core.ObjectPool
+{
+    public interface IRefCounter
+    {
+        void AcquireReference();
+        void ReleaseReference();
+        int RefCount { get; }
+    }
+
+	public class RefCounter : IRefCounter
+	{
+		public void AcquireReference()
+		{
+		}
+
+		public void ReleaseReference()
+		{
+		}
+
+		public int RefCount { get; }
+	}
+
+	public class Allocator
+	{
+		public void Allocate()
+		{
+			Action<int> a = (data) => {};
+		}
+	}
+
+
+}";
+
+            VerifyCSharpDiagnostic(test);
+	    }
+
+        //Diagnostic and CodeFix both triggered and checked for
+        [TestMethod]
 		public void TestInitialByNew()
 		{
 			string test = @"
@@ -31,18 +72,18 @@ namespace RefCounterAnalyzer.Test
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -76,8 +117,68 @@ namespace RefCounterAnalyzer.Test
 			
 		}
 
-	        //Diagnostic and CodeFix both triggered and checked for
-	        [TestMethod]
+
+	    [TestMethod]
+	    public void TestInitialByCast()
+	    {
+	        string test = @"
+    namespace Core.ObjectPool
+{
+    public interface IRefCounter
+    {
+        void AcquireReference();
+        void ReleaseReference();
+        int RefCount { get; }
+    }
+
+	public class RefCounter : IRefCounter
+	{
+		public void AcquireReference()
+		{
+		}
+
+		public void ReleaseReference()
+		{
+		}
+
+		public int RefCount { get; }
+	}
+
+	public class Allocator
+	{
+		public void Allocate(object o)
+		{
+			var a = (RefCounter) o;
+		}
+
+        public void Allocate2(object o)
+		{
+			var a = (RefCounter) o;
+            object b = (object)o;
+		}
+	}
+
+
+}";
+	        var expected = new DiagnosticResult
+	        {
+	            Id = RefCounter001.RefCounterSkipDiagnosticId,
+	            Severity = DiagnosticSeverity.Error,
+	            Message = "Reference Counter of a not checked",
+	            Locations =
+	                new[] {
+	                    new DiagnosticResultLocation("Test0.cs", 33, 8)
+	                }
+	        };
+
+	        VerifyCSharpDiagnostic(test, expected);
+
+
+
+	    }
+
+        //Diagnostic and CodeFix both triggered and checked for
+        [TestMethod]
 	        public void TestInitialByNew2()
 	        {
 	            string test = @"
@@ -85,18 +186,18 @@ namespace RefCounterAnalyzer.Test
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -141,18 +242,18 @@ namespace RefCounterAnalyzer.Test
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -209,18 +310,18 @@ namespace RefCounterAnalyzer.Test
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -275,18 +376,18 @@ namespace RefCounterAnalyzer.Test
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -322,18 +423,18 @@ namespace RefCounterAnalyzer.Test
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -399,18 +500,18 @@ namespace RefCounterAnalyzer.Test
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -447,18 +548,18 @@ namespace RefCounterAnalyzer.Test
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -501,18 +602,18 @@ namespace RefCounterAnalyzer.Test
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -561,18 +662,18 @@ namespace RefCounterAnalyzer.Test
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -612,18 +713,18 @@ namespace RefCounterAnalyzer.Test
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -660,7 +761,7 @@ namespace RefCounterAnalyzer.Test
 
 		public void AddToDic2(RefCounter a)
 		{
-			a.IncRef();
+			a.AcquireReference();
 			_dic.Add(1, a);
 		}
 
@@ -674,6 +775,13 @@ namespace RefCounterAnalyzer.Test
 		{
 			var a = new RefCounter();
 			_array[0] = a;
+		}
+        
+        public void AddToArray()
+		{
+			var a = new RefCounter();
+			System.Collections.Generic.List<RefCounter> list;
+            list.Add(a)
 		}
 	}
 
@@ -694,18 +802,18 @@ namespace RefCounterAnalyzer.Test
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -764,8 +872,8 @@ using System.Collections.Generic;
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
@@ -780,7 +888,7 @@ using System.Collections.Generic;
 		
 		public void SerializeSnapshot(ISnapshot snap, Stream stream)
         {
-            snap.IncRef();
+            snap.AcquireReference();
             _sentSnapshot.Add(snap.SnapshotSeq, snap);
 		}
 		public void AddToQueue(ISnapshot b)
@@ -815,18 +923,18 @@ using System.Collections.Generic;
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -859,18 +967,18 @@ using System.Collections.Generic;
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -914,18 +1022,18 @@ using System.Collections.Generic;
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -968,18 +1076,18 @@ using System.Collections.Generic;
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -1026,18 +1134,18 @@ using System.Collections.Generic;
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -1049,7 +1157,7 @@ using System.Collections.Generic;
 		public RefCounter Allocate()
 		{
 			var a = this.Member;
-			a.IncRef();
+			a.AcquireReference();
 			return a;
 		}
 
@@ -1062,8 +1170,58 @@ using System.Collections.Generic;
 			VerifyCSharpDiagnostic(test);
 		}
 
+	    [TestMethod]
+	    public void TestCallReleaseReference()
+	    {
+	        string test = @"
+    namespace Core.ObjectPool
+{
+    public interface IRefCounter
+    {
+        void AcquireReference();
+        void ReleaseReference();
+        int RefCount { get; }
+    }
 
-		[TestMethod]
+	public class RefCounter : IRefCounter
+	{
+		public void AcquireReference()
+		{
+		}
+
+		public void ReleaseReference()
+		{
+		}
+
+		public int RefCount { get; }
+	}
+
+	public abstract class Allocator
+	{
+		public RefCounter Allocate()
+		{
+			var a = this.AllMember();
+			C.ReleaseReference(a);
+		}
+
+		
+		public abstract RefCounter AllMember();
+	}
+
+    public class C {
+        public static ReleaseReference(IRefCounter r)
+        {
+            r.ReleaseReference();
+        }
+    }
+
+
+}";
+	        VerifyCSharpDiagnostic(test);
+	    }
+
+
+        [TestMethod]
 		public void TestCallIncRefInLoop()
 		{
 			string test = @"
@@ -1071,18 +1229,18 @@ using System.Collections.Generic;
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -1095,7 +1253,7 @@ using System.Collections.Generic;
 		{
 			var a = this.Member;
 			while(true) {
-				a.IncRef();
+				a.AcquireReference();
 			}
 			return a;
 		}
@@ -1127,18 +1285,18 @@ using System.Collections.Generic;
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -1151,7 +1309,7 @@ using System.Collections.Generic;
 		{
 			var a = this.Member;
 			do {
-				a.DelRef();
+				a.ReleaseReference();
 			} while(true);
 			return a;
 		}
@@ -1183,18 +1341,18 @@ using System.Collections.Generic;
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -1207,7 +1365,7 @@ using System.Collections.Generic;
 		{
 			var a = this.Member;
 			var b = this.Member;
-			b.IncRef();
+			b.AcquireReference();
 			return b;
 		}
 
@@ -1215,15 +1373,15 @@ using System.Collections.Generic;
 		{
 			var a = this.Member;
 			var b = this.Member;
-			a.IncRef();
+			a.AcquireReference();
 			return b;
 		}
 
         public void Allocate2()
 		{
 			var a = this.Member;
-			a.IncRef();
-            a.DelRef();
+			a.AcquireReference();
+            a.ReleaseReference();
 		}
 
 		public abstract RefCounter Member {get;}
@@ -1262,18 +1420,18 @@ using System.Collections.Generic;
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -1303,18 +1461,18 @@ using System.Collections.Generic;
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -1346,8 +1504,58 @@ using System.Collections.Generic;
             VerifyCSharpDiagnostic(test, expected2);
 	    }
 
+	    [TestMethod]
+	    public void TestParameterOfReleaseReference()
+	    {
+	        string test = @"
+    namespace Core.ObjectPool
+{
+    public interface IRefCounter
+    {
+        void AcquireReference();
+        void ReleaseReference();
+        int RefCount { get; }
+    }
 
-		[TestMethod]
+	public class RefCounter : IRefCounter
+	{
+		public void AcquireReference()
+		{
+		}
+
+		public void ReleaseReference()
+		{
+		}
+
+		public int RefCount { get; }
+	}
+
+	public abstract class Allocator
+	{
+		public void ReleaseReference(RefCounter rc)
+		{
+            
+		}
+
+	}
+
+
+}";
+	        var expected2 = new DiagnosticResult
+	        {
+	            Id = RefCounter001.RefCounterErrorDiagnosticId,
+	            Severity = DiagnosticSeverity.Error,
+	            Message = "Reference Counter of rc is 1",
+	            Locations =
+	                new[] {
+	                    new DiagnosticResultLocation("Test0.cs", 26, 43)
+	                }
+	        };
+	        VerifyCSharpDiagnostic(test, expected2);
+	    }
+
+
+        [TestMethod]
 		public void TestParameterAssignToFieldInLoop()
 		{
 			string test = @"
@@ -1355,18 +1563,18 @@ using System.Collections.Generic;
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -1409,18 +1617,18 @@ using System.Collections.Generic;
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -1466,18 +1674,18 @@ using System.Collections.Generic;
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -1490,13 +1698,13 @@ using System.Collections.Generic;
 		public void Allocate(RefCounter rc)
 		{
             _field = rc;
-            rc.IncRef();
+            rc.AcquireReference();
 		}
 
         public void Allocate(RefCounter rc)
 		{
             _field = rc;
-            _field.IncRef();
+            _field.AcquireReference();
 		}
 	}
 
@@ -1514,18 +1722,18 @@ using System.Collections.Generic;
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -1546,12 +1754,12 @@ using System.Collections.Generic;
 		public void Allocate(RefCounter rc)
 		{
             _field = rc;
-            rc.IncRef();
+            rc.AcquireReference();
 		}
         public void Allocate2(RefCounter rc)
 		{
             _list.Add(rc);
-            rc.IncRef();
+            rc.AcquireReference();
 		}
 	}
 
@@ -1578,18 +1786,18 @@ using System.Collections.Generic;
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -1660,18 +1868,18 @@ using System.Collections.Generic;
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -1729,18 +1937,18 @@ using System.Collections.Generic;
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 
@@ -1779,18 +1987,18 @@ using System.Collections.Generic;
 {
     public interface IRefCounter
     {
-        void IncRef();
-        void DelRef();
+        void AcquireReference();
+        void ReleaseReference();
         int RefCount { get; }
     }
 
 	public class RefCounter : IRefCounter
 	{
-		public void IncRef()
+		public void AcquireReference()
 		{
 		}
 
-		public void DelRef()
+		public void ReleaseReference()
 		{
 		}
 

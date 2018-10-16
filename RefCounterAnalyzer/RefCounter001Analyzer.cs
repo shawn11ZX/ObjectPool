@@ -113,7 +113,7 @@ namespace IDisposableAnalyzers
 		    {
 		        if (RefCounter.IsAssignableTo(methodSymbol.ReturnType))
 		        {
-		            if (!AssignmentUtils.IsGetMethod(invocation, context.SemanticModel))
+		            if (!AssignmentUtils.IsGetMethod(invocation, context.SemanticModel, context.CancellationToken))
 		            {
 		                ProcessCreation(invocation, context);
 		            }
@@ -155,24 +155,34 @@ namespace IDisposableAnalyzers
 
 	    private static void HandleMethodParameter(SyntaxNodeAnalysisContext context, ParameterSyntax parameter)
 	    {
-	        var isRefCounter = RefCounter.IsRefCounterType(context.SemanticModel, parameter.Type);
-	        if (isRefCounter)
+	        var paramSympol = context.SemanticModel.GetDeclaredSymbol(parameter, context.CancellationToken);
+	        if (paramSympol != null)
 	        {
-		        var param = context.SemanticModel.GetDeclaredSymbolSafe(parameter, context.CancellationToken);
-
-				if (param != null)
+	            var isRefCounter = RefCounter.IsRefCounterType(paramSympol.Type);
+	            if (isRefCounter)
 	            {
-	                var method = parameter.FirstAncestorOrSelf<MethodDeclarationSyntax>();
-	                var block = method?.Body;
-                    if (block == null)
-	                {
-	                    return;
-	                }
-					RefCounterStatus status = new RefCounterStatus();
+	                var param = context.SemanticModel.GetDeclaredSymbolSafe(parameter, context.CancellationToken);
 
-                    ProcessLocalOrParamenterVar(context, param, block, status);
-                }
+	                if (param != null)
+	                {
+	                    var method = parameter.FirstAncestorOrSelf<MethodDeclarationSyntax>();
+	                    var block = method?.Body;
+	                    if (block == null)
+	                    {
+	                        return;
+	                    }
+
+	                    RefCounterStatus status = new RefCounterStatus();
+	                    if (method.Identifier.ToString().Equals(KnownSymbol.ReleaseReference))
+	                    {
+	                        status.AcquireReference("param of ReleaseReference", method.GetLocation());
+	                    }
+	                    ProcessLocalOrParamenterVar(context, param, block, status);
+	                }
+	            }
             }
+	        
+	        
 	    }
 
 	    private static void HandleLocalDeclaration(SyntaxNodeAnalysisContext context,
@@ -202,7 +212,7 @@ namespace IDisposableAnalyzers
 	            }
 		        RefCounterStatus status = new RefCounterStatus();
 
-				AssignmentUtils.ProcessVariableInitialization(variable, context.SemanticModel, context.CancellationToken, status);
+				AssignmentUtils.ProcessVariableInitialization(variable, block, context.SemanticModel, context.CancellationToken, status);
 
 		        ProcessLocalOrParamenterVar(context, local, block, status);
 	        }
@@ -219,7 +229,7 @@ namespace IDisposableAnalyzers
 	        LeftOfAssignmentUtils.ProcessLeftSideOfAssignment(local, block, context.SemanticModel,
 	            context.CancellationToken, status);
 
-	        IncDelRefMethodUtils.ProcessIncDelRefInvocation(local, block, context.SemanticModel, context.CancellationToken,
+	        ChangeReferenceMethodUtils.ProcessIncDelRefInvocation(local, block, context.SemanticModel, context.CancellationToken,
 	            status);
 
 	        AssignmentUtils.ProcessOutRefInvocation(local, block, context.SemanticModel, context.CancellationToken, status);

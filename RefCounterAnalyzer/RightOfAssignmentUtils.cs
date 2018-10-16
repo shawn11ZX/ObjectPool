@@ -67,7 +67,7 @@ static internal class RightOfAssignmentUtils
 
 		if (count == 1)
 		{
-			status.DelRef("assign to class field/property", loc);
+			status.ReleaseReference("assign to class field/property", loc);
 
 			var methodBlock = block?.FirstAncestorOrSelf<BlockSyntax>();
 			if (methodBlock == null)
@@ -75,13 +75,13 @@ static internal class RightOfAssignmentUtils
 				return;
 			}
 
-			if (LeftOfAssignmentUtils.IsRightSideOfAssignment(field, methodBlock, semanticModel, cancellationToken))
+			if (RightSideOfAssignmentCount(field, methodBlock, semanticModel, cancellationToken) > 0)
 			{
 				status.Skip("var assigned to field/property, which is assigned to others", loc);
 			}
 
 			
-			IncDelRefMethodUtils.ProcessIncDelRefInvocation(field, methodBlock, semanticModel, cancellationToken, status);
+			ChangeReferenceMethodUtils.ProcessIncDelRefInvocation(field, methodBlock, semanticModel, cancellationToken, status);
 			ReturnUtils.ProcessReturnStatement(field, methodBlock, semanticModel, cancellationToken, status);
 		}
 		else if (count > 1)
@@ -117,4 +117,36 @@ static internal class RightOfAssignmentUtils
 		ProcessRightOfAssignmentToLocal(local, block, semanticModel, cancellationToken, status);
 
 	}
+
+    public static int RightSideOfAssignmentCount(ISymbol variable,
+        BlockSyntax block,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken)
+    {
+        int count = 0;
+        using (var walker = AssignmentWalker.Borrow(block, Search.TopLevel, semanticModel, cancellationToken))
+        {
+            foreach (AssignmentExpressionSyntax assignment in walker.Assignments)
+            {
+                var right = semanticModel.GetSymbolSafe(CastUtils.UnWrapCast(assignment.Right), cancellationToken);
+                if (right != null && right.Equals(variable))
+                {
+                    count++;
+                }
+            }
+        }
+
+        using (var walker = VariableDeclarationWalker.Borrow(block, Search.TopLevel, semanticModel, cancellationToken))
+        {
+            foreach (VariableDeclaratorSyntax delc in walker.Declarations)
+            {
+                var rightSymbol = semanticModel.GetSymbolSafe(CastUtils.UnWrapCast(delc.Initializer.Value), cancellationToken);
+                if (SymbolComparer.Equals(variable, rightSymbol))
+                {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
 }

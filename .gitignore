@@ -8,3 +8,7 @@
 /ObjectPool/bin
 /ObjectPoolTests/bin
 /ObjectPoolTests/obj
+/RefCounterAnalyzer.Vsix/obj
+/RefCounterAnalyzer.Vsix/bin
+/SampleProjectWithAnalyzer/obj
+/SampleProjectWithAnalyzer/bin

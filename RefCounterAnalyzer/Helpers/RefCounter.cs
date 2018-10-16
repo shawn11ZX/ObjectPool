@@ -79,7 +79,7 @@ namespace IDisposableAnalyzers
                 return false;
             }
 
-            var delers = type.GetMembers(KnownSymbol.DelRef);
+            var delers = type.GetMembers(KnownSymbol.ReleaseReference);
             switch (delers.Length)
             {
                 case 0:
@@ -129,7 +129,7 @@ namespace IDisposableAnalyzers
             var baseType = type.BaseType;
             while (baseType != null)
             {
-                if (baseType.TrySingleMethodRecursive(KnownSymbol.DelRef, IsVirtualDelRef, out result))
+                if (baseType.TrySingleMethodRecursive(KnownSymbol.ReleaseReference, IsVirtualDelRef, out result))
                 {
                     return true;
                 }
@@ -143,17 +143,22 @@ namespace IDisposableAnalyzers
 
 	    public static bool IsRefCounterType(SemanticModel semanticModel, TypeSyntax type)
 	    {
-		    var symbolInfo = semanticModel.GetSymbolInfo(type);
+	        var symbolInfo = semanticModel.GetSymbolInfo(type);
 
-		    bool isRefCounter = false;
-		    if (symbolInfo.Symbol is ITypeSymbol typeInfo)
-		    {
-			    if (RefCounter.IsAssignableTo(typeInfo))
-			    {
-				    isRefCounter = true;
-			    }
-		    }
-		    return isRefCounter;
+	        return IsRefCounterType(symbolInfo.Symbol);
 	    }
-	}
+
+        public static bool IsRefCounterType(ISymbol symbolInfo)
+        {
+            bool isRefCounter = false;
+            if (symbolInfo is ITypeSymbol typeInfo)
+            {
+                if (RefCounter.IsAssignableTo(typeInfo))
+                {
+                    isRefCounter = true;
+                }
+            }
+            return isRefCounter;
+        }
+    }
 }

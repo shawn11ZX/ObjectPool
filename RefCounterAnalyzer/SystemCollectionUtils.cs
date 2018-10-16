@@ -35,7 +35,32 @@ static internal class SystemCollectionUtils
 						isAddToCollection = method.ReceiverType.Is(KnownSymbol.Queue) &&
 						                    method?.Name == "Enqueue";
 					}
-				}
+
+				    if (!isAddToCollection)
+				    {
+				        isAddToCollection = method.ReceiverType.Is(KnownSymbol.ListOfT) &&
+				                            method?.Name == "Insert";
+				    }
+				    if (!isAddToCollection)
+				    {
+				        isAddToCollection = method.ReceiverType.Is(KnownSymbol.IRefCounterContainerOfT) &&
+				                            method?.Name == "Add";
+				    }
+
+				    if (!isAddToCollection)
+				    {
+				        isAddToCollection = method.ReceiverType.Is(KnownSymbol.CollectionOfT) &&
+				                            method?.Name == "Add";
+				    }
+				    if (!isAddToCollection)
+				    {
+				        isAddToCollection = method.ReceiverType.Is(KnownSymbol.LinkedListOfT) &&
+				                            (method?.Name == "AddLast" || method?.Name == "AddFirst");
+                        
+
+                    }
+
+                }
 
 				if (isAddToCollection)
 				{
@@ -66,7 +91,7 @@ static internal class SystemCollectionUtils
 
 		if (count == 1)
 		{
-			status.DelRef("added to class field/property collection", loc);
+			status.ReleaseReference("added to collection", loc);
 		}
 	}
 }

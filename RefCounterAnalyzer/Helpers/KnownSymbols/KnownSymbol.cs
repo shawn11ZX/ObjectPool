@@ -9,9 +9,18 @@ namespace IDisposableAnalyzers
 
     internal static class KnownSymbol
     {
-        public static string GetMethodProfix = "Get";
-	    public static string IncRef = "IncRef";
-	    public static string DelRef = "DelRef";
+        public static bool IsGetMethodName(string methodName)
+        {
+            foreach (var prefix in GetMethodProfixs)
+            {
+                if (methodName.StartsWith(prefix))
+                    return true;
+            }
+            return false;
+        }
+        public static string[] GetMethodProfixs = new [] {"Get", "CreateAndGet" };
+	    public static string AcquireReference = "AcquireReference";
+	    public static string ReleaseReference = "ReleaseReference";
 		internal static readonly QualifiedType IRefCounter = Create("Core.ObjectPool.IRefCounter");
 		
 		internal static readonly QualifiedType Void = Create("System.Void");
@@ -35,6 +44,8 @@ namespace IDisposableAnalyzers
 	    internal static readonly QualifiedType Queue = Create("System.Collections.Queue");
 
 		internal static readonly QualifiedType ListOfT = Create("System.Collections.Generic.List`1");
+        internal static readonly QualifiedType CollectionOfT = Create("System.Collections.Generic.ICollection`1");
+        internal static readonly QualifiedType IRefCounterContainerOfT = Create("Core.ObjectPool.IRefCounterContainer`1");
         internal static readonly QualifiedType StackOfT = Create("System.Collections.Generic.Stack`1");
         internal static readonly QualifiedType QueueOfT = Create("System.Collections.Generic.Queue`1");
         internal static readonly QualifiedType LinkedListOfT = Create("System.Collections.Generic.LinkedList`1");

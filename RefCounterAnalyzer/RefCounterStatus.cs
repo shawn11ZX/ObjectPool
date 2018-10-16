@@ -30,13 +30,13 @@ public class RefCounterStatus
 		_assignCounter++;
 		_assignInfo.Append(reason + ToString(location) + " +1, ");
 	}
-	public void IncRef(string reason, Location location)
+	public void AcquireReference(string reason, Location location)
 	{
 		_refCounter++;
 		_refInfo.Append(reason + ToString(location) + " +1, ");
 	}
 
-	public void DelRef(string reason, Location location)
+	public void ReleaseReference(string reason, Location location)
 	{
 		_refCounter--;
 		_refInfo.Append(reason + ToString(location) + " -1, ");

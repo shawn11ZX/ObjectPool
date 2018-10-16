@@ -22,7 +22,7 @@ namespace RefCounterAnalyzer
 					    bool isGet = false;
 					    if (method != null)
 					    {
-					        isGet = method.Identifier.ToString().StartsWith(KnownSymbol.GetMethodProfix);
+					        isGet = KnownSymbol.IsGetMethodName(method.Identifier.ToString()); 
 					    }
                         else if (access != null)
 					        isGet = true;
@@ -32,7 +32,7 @@ namespace RefCounterAnalyzer
 					    }
 					    else
 					    {
-					        status.DelRef("return value from non get", value.GetLocation());
+					        status.ReleaseReference("return value from non get", value.GetLocation());
 					    }
                     }
 				}

@@ -129,9 +129,8 @@
   <data name="RefCounter004AnalyzerDescription" xml:space="preserve">
     <value>Method Return value of IRefCounter must be used</value>
   </data>
-  
   <data name="RefCounterErrorAnalyzerMessageFormat" xml:space="preserve">
-    <value>Reference Counter of {0} is {1}, detail {2}</value>
+    <value>Reference Counter of {0} is {1}: {2}</value>
   </data>
   <data name="RefCounterParseErrorMessageFormat" xml:space="preserve">
     <value>Parse error, {0}</value>
@@ -139,7 +138,6 @@
   <data name="RefCounterNotAssignedMessageFormat" xml:space="preserve">
     <value>return type of IRefCounter not used, {0}</value>
   </data>
-  
   <data name="RefCounterSkipAnalyzerMessageFormat" xml:space="preserve">
     <value>Reference Counter of {0} not checked, for {1}</value>
   </data>
@@ -150,12 +148,12 @@
     <value>assigned to other local variables</value>
   </data>
   <data name="SkipReasonMoreThanOneAddRef" xml:space="preserve">
-    <value>more than one AddRef</value>
+    <value>more than one AcquireReference call</value>
   </data>
   <data name="SkipReasonMoreThanOneDelRef" xml:space="preserve">
-    <value>more than one DelRef</value>
+    <value>more than one ReleaseReference call</value>
   </data>
   <data name="RefCounter001AnalyzerTitle" xml:space="preserve">
-    <value>Don't ignore return value of type IRefCounter.</value>
+    <value>possible reference counter error</value>
   </data>
 </root>
