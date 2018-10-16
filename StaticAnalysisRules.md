@@ -1,3 +1,4 @@
+# Static Analysis Rules
 
 ## Principles
 
