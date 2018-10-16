@@ -116,3 +116,6 @@ class AppleWithRefCounter2 : IRefCounter
             apple.ReleaseReference(); // compile will fail, if not release thanks to code analysis
         }
 ```
+
+## Static analysis rules
+See [Static Analysis Rules](https://github.com/shawn11ZX/ObjectPool/blob/master/StaticAnalysisRules.md)
